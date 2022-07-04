@@ -3,7 +3,7 @@
 #include "BlasterAnimInstance.h"
 #include "BlasterCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
+#include "Kismet/KismetMathLibrary.h"
 
 void UBlasterAnimInstance::NativeInitializeAnimation()
 {
@@ -30,4 +30,31 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 
 	bIsAccelerating = BlasterCharacter->GetCharacterMovement()->
 		GetCurrentAcceleration().Size() > 0 ? true : false;
+
+	bWeaponEquipped = BlasterCharacter->IsWeaponEquipped();
+
+	bIsCrouched = BlasterCharacter->bIsCrouched;
+
+	bAiming = BlasterCharacter->IsAiming();
+
+	FRotator AimRotation = BlasterCharacter->GetBaseAimRotation();
+	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(BlasterCharacter->GetVelocity());
+	FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation);
+	DeltaRotation = FMath::RInterpTo(DeltaRotation, DeltaRot, DeltaTime, 5.f);
+	YawOffset = DeltaRotation.Yaw;
+
+	CharacterRotationLastFrame = CharacterRotation;
+	CharacterRotation = BlasterCharacter->GetActorRotation();
+	const FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(CharacterRotation, CharacterRotationLastFrame);
+	const float Target = Delta.Yaw / DeltaTime;
+	const float Interp = FMath::FInterpTo(Lean, Target, DeltaTime, 6.0f);
+	Lean = FMath::Clamp(Interp, -90.f, 90.f);
+
+
+	/*if (!BlasterCharacter->HasAuthority() && !BlasterCharacter->IsLocallyControlled())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AimRotation Yaw : %f : "), AimRotation.Yaw);
+		UE_LOG(LogTemp, Warning, TEXT("MovementRotation Yaw : %f : "), MovementRotation.Yaw);
+	}*/
+	
 }
