@@ -7,9 +7,10 @@
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Project/Weapon/Weapon.h"
-#include "Project/BlasterComponent/CombatComponent.h"
+#include "Project/BlasterComponent/TmpCombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "BlasterAnimInstance.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -30,8 +31,9 @@ ABlasterCharacter::ABlasterCharacter()
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(RootComponent);
 
-	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
-	Combat->SetIsReplicated(true);
+	//Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	TmpCombat = CreateDefaultSubobject<UTmpCombatComponent>(TEXT("CombatComponent"));
+	TmpCombat->SetIsReplicated(true);
 
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(
@@ -74,6 +76,9 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ABlasterCharacter::AimButtonPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ABlasterCharacter::AimButtonReleased);
 
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ABlasterCharacter::FireButtonPressed);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ABlasterCharacter::FireButtonReleased);
+
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABlasterCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABlasterCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &ABlasterCharacter::Turn);
@@ -84,8 +89,25 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 void ABlasterCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	if (Combat)
-		Combat->Character = this;
+
+	if (TmpCombat)
+		TmpCombat->Character = this;
+}
+
+void ABlasterCharacter::PlayFireMontage(bool bAiming)
+{
+	if (TmpCombat == nullptr || TmpCombat->EquippedWeapon == nullptr)
+		return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && FireWeaponMontage)
+	{
+		AnimInstance->Montage_Play(FireWeaponMontage);
+		FName SectionName;
+		SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+
 }
 
 void ABlasterCharacter::MoveForward(float Value)
@@ -120,13 +142,15 @@ void ABlasterCharacter::LookUp(float Value)
 
 void ABlasterCharacter::EquipButtonPressed()
 {
-	if (Combat)
+	
+	if (TmpCombat)
 	{
 		if (HasAuthority())
-			Combat->EquipWeapon(OverlappingWeapon);
+			TmpCombat->EquipWeapon(OverlappingWeapon);
 		else
 			ServerEquipButtonPressed();
 	}
+	
 }
 
 void ABlasterCharacter::CrouchButtonPressed()
@@ -139,25 +163,24 @@ void ABlasterCharacter::CrouchButtonPressed()
 
 void ABlasterCharacter::AimButtonPressed()
 {
-	if (Combat)
-	{
-		Combat->SetAiming(true);
-	}
+	if (TmpCombat)
+		TmpCombat->SetAiming(true);
+	
 }
 
 void ABlasterCharacter::AimButtonReleased()
 {
-	if (Combat)
-	{
-		Combat->SetAiming(false);
-	}
+	if (TmpCombat)
+		TmpCombat->SetAiming(false);
+	
 }
 
 void ABlasterCharacter::AimOffset(float DeltaTime)
 {
-	if (Combat && Combat->EquippedWeapon == nullptr)
+	
+	if (TmpCombat && TmpCombat->EquippedWeapon == nullptr)
 		return;
-
+		
 	FVector Velocity = GetVelocity();
 	Velocity.Z = 0.f;
 	float Speed = Velocity.Size();
@@ -203,10 +226,22 @@ void ABlasterCharacter::Jump()
 		Super::Jump();
 }
 
+void ABlasterCharacter::FireButtonPressed()
+{
+	if (TmpCombat)
+		TmpCombat->FireButtonPressed(true);
+}
+
+void ABlasterCharacter::FireButtonReleased()
+{
+	if (TmpCombat)
+		TmpCombat->FireButtonPressed(false);
+}
+
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
-	if (Combat)
-		Combat->EquipWeapon(OverlappingWeapon);
+	if (TmpCombat)
+		TmpCombat->EquipWeapon(OverlappingWeapon);
 }
 
 void ABlasterCharacter::TurnInPlace(float DeltaTime)
@@ -244,19 +279,19 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 
 bool ABlasterCharacter::IsWeaponEquipped()
 {
-	return (Combat && Combat->EquippedWeapon);
+	return (TmpCombat && TmpCombat->EquippedWeapon);
 }
 
 bool ABlasterCharacter::IsAiming()
 {
-	return (Combat && Combat->bAiming);
+	return (TmpCombat && TmpCombat->bAiming);
 }
 
 AWeapon* ABlasterCharacter::GetEquippedWeapon() const
 {
-	if (Combat == nullptr)
+	if (TmpCombat == nullptr)
 		return nullptr;
-	return Combat->EquippedWeapon;
+	return TmpCombat->EquippedWeapon;
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)

@@ -11,8 +11,10 @@ class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
 class AWeapon;
-class UCombatComponent;
-class UCombatComponent;
+//class UCombatComponent;
+class UAnimMontage;
+class UTmpCombatComponent;
+
 
 UCLASS()
 class PROJECT_API ABlasterCharacter : public ACharacter
@@ -26,6 +28,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
+	
+	void PlayFireMontage(bool bAiming);
 
 protected:
 	virtual void BeginPlay() override;
@@ -43,27 +47,31 @@ protected:
 	void AimOffset(float DeltaTime);
 	virtual void Jump() override;
 
+	void FireButtonPressed();
+	void FireButtonReleased();
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
-		USpringArmComponent* CameraBoom;
+	USpringArmComponent* CameraBoom;
 
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
-		UCameraComponent* FollowCamera;
+	UCameraComponent* FollowCamera;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		UWidgetComponent* OverheadWidget;
+	UWidgetComponent* OverheadWidget;
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
-		AWeapon* OverlappingWeapon;
+	AWeapon* OverlappingWeapon;
 
 	UFUNCTION()
-		void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
-	UPROPERTY(VisibleAnywhere)
-		UCombatComponent* Combat;
+	UPROPERTY(VisibleAnywhere, Category = "Combat")
+	UTmpCombatComponent* TmpCombat;
+	//UCombatComponent* Combat;
 
 	UFUNCTION(Server, Reliable)
-		void ServerEquipButtonPressed();
+	void ServerEquipButtonPressed();
 
 	float AO_Yaw;
 	float InterpAO_Yaw;
@@ -72,6 +80,9 @@ private:
 
 	ETurningInPlace TurningInPlace;
 	void TurnInPlace(float DeltaTime);
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	UAnimMontage* FireWeaponMontage;
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
