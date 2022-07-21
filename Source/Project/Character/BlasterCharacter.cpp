@@ -19,6 +19,7 @@
 #include "Sound/SoundCue.h"
 #include "particles/ParticleSystemComponent.h"
 #include "Project/PlayerState/BlasterPlayerState.h"
+#include "Project/Weapon/WeaponTypes.h"
 
 
 ABlasterCharacter::ABlasterCharacter()
@@ -90,6 +91,10 @@ void ABlasterCharacter::Elim()
 
 void ABlasterCharacter::MulticastElim_Implementation()
 {
+	if (BlasterPlayerController)
+	{
+		BlasterPlayerController->SetHUDWeaponAmmo(0);
+	}
 	bElimmed = true;
 	PlayElimMontage();
 
@@ -186,6 +191,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABlasterCharacter::FireButtonPressed);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ABlasterCharacter::FireButtonReleased);
 
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ABlasterCharacter::ReloadButtonPressed);
+
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABlasterCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABlasterCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &ABlasterCharacter::Turn);
@@ -215,6 +222,26 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 
+}
+
+void ABlasterCharacter::PlayReloadMontage()
+{
+	if (TmpCombat == nullptr || TmpCombat->EquippedWeapon == nullptr)
+		return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ReloadMontage)
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+		FName SectionName;
+		switch (TmpCombat->EquippedWeapon->GetWeaponType())
+		{
+		case EWeaponType::EWT_AssaultRifle:
+			SectionName = FName("Rifle");
+			break;
+		}
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
 }
 
 void ABlasterCharacter::PlayElimMontage()
@@ -322,6 +349,14 @@ void ABlasterCharacter::CrouchButtonPressed()
 		UnCrouch();
 	else
 		Crouch();
+}
+
+void ABlasterCharacter::ReloadButtonPressed()
+{
+	if (TmpCombat)
+	{
+		TmpCombat->Reload();
+	}
 }
 
 void ABlasterCharacter::AimButtonPressed()
@@ -556,6 +591,13 @@ FVector ABlasterCharacter::GetHitTarget() const
 	if (TmpCombat == nullptr)
 		return FVector();
 	return TmpCombat->HitTarget;
+}
+
+ECombatState ABlasterCharacter::GetCombatState() const
+{
+	if (TmpCombat == nullptr)
+		return ECombatState::ECS_MAX;
+	return TmpCombat->CombatState;
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)

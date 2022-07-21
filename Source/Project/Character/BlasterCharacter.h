@@ -7,13 +7,13 @@
 #include "Project/BlasterTypes/TurningInPlace.h"
 #include "Project/Interfaces/InteractWithCrosshairsInterface.h"
 #include "Components/TimelineComponent.h"
+#include "Project/BlasterTypes/CombatState.h"
 #include "BlasterCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
 class AWeapon;
-//class UCombatComponent;
 class UAnimMontage;
 class UTmpCombatComponent;
 class ABlasterPlayerController;
@@ -35,7 +35,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	void PlayFireMontage(bool bAiming);
+	void PlayReloadMontage();
 	void PlayElimMontage();
+	
 	virtual void OnRep_ReplicatedMovement() override;
 
 	void Elim();
@@ -54,6 +56,7 @@ protected:
 
 	void EquipButtonPressed();
 	void CrouchButtonPressed();
+	void ReloadButtonPressed();
 	void AimButtonPressed();
 	void AimButtonReleased();
 
@@ -91,7 +94,7 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
-	UPROPERTY(VisibleAnywhere, Category = "Combat")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UTmpCombatComponent* TmpCombat;
 	//UCombatComponent* Combat;
 
@@ -108,6 +111,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	UAnimMontage* FireWeaponMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	UAnimMontage* ReloadMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	UAnimMontage* HitReactMontage;
@@ -194,4 +200,6 @@ public:
 	FORCEINLINE bool IsElimmed() const { return bElimmed; }
 	FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	ECombatState GetCombatState() const;
+	
 };
