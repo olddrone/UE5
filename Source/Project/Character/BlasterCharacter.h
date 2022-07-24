@@ -37,7 +37,7 @@ public:
 	void PlayFireMontage(bool bAiming);
 	void PlayReloadMontage();
 	void PlayElimMontage();
-	
+
 	virtual void OnRep_ReplicatedMovement() override;
 
 	void Elim();
@@ -45,6 +45,9 @@ public:
 	void MulticastElim();
 
 	virtual void Destroyed() override;
+
+	UPROPERTY(Replicated)
+	bool bDisableGamePlay = false;
 
 protected:
 	virtual void BeginPlay() override;
@@ -72,11 +75,13 @@ protected:
 	void CalculateAO_Pitch();
 
 	UFUNCTION()
-	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
-		AController* InstigatorController, AActor* DamageCauser);
+		void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+			AController* InstigatorController, AActor* DamageCauser);
 
 	void UpdateHUDHealth();
 	void PollInit();
+
+	void RotateInPlace(float DeltaTime);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
@@ -166,6 +171,7 @@ private:
 
 	UFUNCTION()
 	void UpdateDissolveMaterial(float DissolveValue);
+	
 	void StartDissolve();
 
 	UPROPERTY(VisibleAnywhere, Category = "Elim")
@@ -201,5 +207,6 @@ public:
 	FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	ECombatState GetCombatState() const;
-	
+	FORCEINLINE UTmpCombatComponent* GetTmpCombat() const { return TmpCombat; }
+	FORCEINLINE bool GetDisableGameplay() const { return bDisableGamePlay; }
 };

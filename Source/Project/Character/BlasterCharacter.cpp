@@ -69,6 +69,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABlasterCharacter, Health);
+	DOREPLIFETIME(ABlasterCharacter, bDisableGamePlay);
 }
 
 void ABlasterCharacter::OnRep_ReplicatedMovement()
@@ -109,9 +110,11 @@ void ABlasterCharacter::MulticastElim_Implementation()
 
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
-	if (BlasterPlayerController)
-		DisableInput(BlasterPlayerController);
-	
+	bDisableGamePlay = true;
+	if (TmpCombat)
+	{
+		TmpCombat->FireButtonPressed(false);
+	}
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -145,6 +148,14 @@ void ABlasterCharacter::Destroyed()
 	{
 		ElimBotComponent->DestroyComponent();
 	}
+
+	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	bool bMatchNotInProgress = BlasterGameMode && BlasterGameMode->GetMatchState() != MatchState::InProgress;
+
+	if (TmpCombat && TmpCombat->EquippedWeapon && bMatchNotInProgress)
+	{
+		TmpCombat->EquippedWeapon->Destroy();
+	}
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -161,6 +172,19 @@ void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	RotateInPlace(DeltaTime);
+	HideCameraIfCharacterClose();
+	PollInit();
+}
+
+void ABlasterCharacter::RotateInPlace(float DeltaTime)
+{
+	if (bDisableGamePlay)
+	{
+		bUseControllerRotationYaw = false;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
 	if (GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled())
 		AimOffset(DeltaTime);
 	else
@@ -172,9 +196,6 @@ void ABlasterCharacter::Tick(float DeltaTime)
 		}
 		CalculateAO_Pitch();
 	}
-	
-	HideCameraIfCharacterClose();
-	PollInit();
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -302,6 +323,8 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage,
 
 void ABlasterCharacter::MoveForward(float Value)
 {
+	if (bDisableGamePlay)
+		return;
 	if (Controller != nullptr && Value != 0.f)
 	{
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
@@ -312,6 +335,9 @@ void ABlasterCharacter::MoveForward(float Value)
 
 void ABlasterCharacter::MoveRight(float Value)
 {
+	if (bDisableGamePlay)
+		return;
+
 	if (Controller != nullptr && Value != 0.f)
 	{
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
@@ -332,7 +358,8 @@ void ABlasterCharacter::LookUp(float Value)
 
 void ABlasterCharacter::EquipButtonPressed()
 {
-	
+	if (bDisableGamePlay)
+		return;
 	if (TmpCombat)
 	{
 		if (HasAuthority())
@@ -345,6 +372,8 @@ void ABlasterCharacter::EquipButtonPressed()
 
 void ABlasterCharacter::CrouchButtonPressed()
 {
+	if (bDisableGamePlay)
+		return;
 	if (bIsCrouched)
 		UnCrouch();
 	else
@@ -353,6 +382,8 @@ void ABlasterCharacter::CrouchButtonPressed()
 
 void ABlasterCharacter::ReloadButtonPressed()
 {
+	if (bDisableGamePlay)
+		return;
 	if (TmpCombat)
 	{
 		TmpCombat->Reload();
@@ -361,6 +392,8 @@ void ABlasterCharacter::ReloadButtonPressed()
 
 void ABlasterCharacter::AimButtonPressed()
 {
+	if (bDisableGamePlay)
+		return;
 	if (TmpCombat)
 		TmpCombat->SetAiming(true);
 	
@@ -368,6 +401,8 @@ void ABlasterCharacter::AimButtonPressed()
 
 void ABlasterCharacter::AimButtonReleased()
 {
+	if (bDisableGamePlay)
+		return;
 	if (TmpCombat)
 		TmpCombat->SetAiming(false);
 	
@@ -441,6 +476,8 @@ void ABlasterCharacter::SimProxiesTurn()
 
 void ABlasterCharacter::Jump()
 {
+	if (bDisableGamePlay)
+		return;
 	if (bIsCrouched)
 		UnCrouch();
 	else
@@ -449,12 +486,16 @@ void ABlasterCharacter::Jump()
 
 void ABlasterCharacter::FireButtonPressed()
 {
+	if (bDisableGamePlay)
+		return;
 	if (TmpCombat)
 		TmpCombat->FireButtonPressed(true);
 }
 
 void ABlasterCharacter::FireButtonReleased()
 {
+	if (bDisableGamePlay)
+		return;
 	if (TmpCombat)
 		TmpCombat->FireButtonPressed(false);
 }
