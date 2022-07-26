@@ -12,7 +12,8 @@ public class Project : ModuleRules
 			"Core", 
 			"CoreUObject", 
 			"Engine", 
-			"InputCore" 
+			"InputCore",
+			"Niagara"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

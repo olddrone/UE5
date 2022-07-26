@@ -111,6 +111,7 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
 	bDisableGamePlay = true;
+	
 	if (TmpCombat)
 	{
 		TmpCombat->FireButtonPressed(false);
@@ -129,6 +130,15 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	if (ElimBotSound)
 	{
 		UGameplayStatics::SpawnSoundAtLocation(this, ElimBotSound, GetActorLocation());
+	}
+
+	bool bHideSniperScope = IsLocallyControlled() && TmpCombat && 
+		TmpCombat->bAiming && TmpCombat->EquippedWeapon && 
+		TmpCombat->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
+
+	if (bHideSniperScope)
+	{
+		ShowSniperScopeWidget(false);
 	}
 }
 
@@ -258,6 +268,21 @@ void ABlasterCharacter::PlayReloadMontage()
 		switch (TmpCombat->EquippedWeapon->GetWeaponType())
 		{
 		case EWeaponType::EWT_AssaultRifle:
+			SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_RocketLauncher:
+			SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_Pistol:
+			SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_SubmachineGun:
+			SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_Shotgun:
+			SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_SniperRifle:
 			SectionName = FName("Rifle");
 			break;
 		}
