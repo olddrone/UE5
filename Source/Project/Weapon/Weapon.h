@@ -73,6 +73,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	USoundCue* EquipSound;
 
+	void EnableCustomDepth(bool bEnable);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -133,6 +135,7 @@ public:
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
 	FORCEINLINE	float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 	bool IsEmpty();
+	bool IsFull();
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 	FORCEINLINE int32 GetAmmo() const { return Ammo; }
 	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
