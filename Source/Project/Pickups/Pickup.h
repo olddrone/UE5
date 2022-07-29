@@ -29,9 +29,6 @@ protected:
 	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	UFUNCTION()
-	virtual void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UPROPERTY(EditAnywhere)
 	float BaseTurnRate = 45.f;
@@ -47,10 +44,16 @@ private:
 	UStaticMeshComponent* PickupMesh;
 
 	UPROPERTY(VisibleAnywhere)
-		UNiagaraComponent* PickupEffectComponent;
+	UNiagaraComponent* PickupEffectComponent;
 
 	UPROPERTY(EditAnywhere)
-		UNiagaraSystem* PickupEffect;
+	UNiagaraSystem* PickupEffect;
+
+	FTimerHandle BindOverlapTimer;
+
+	float BindOverlapTime = 0.25f;
+
+	void BindOverlapTimerFinished();
 
 public:
 
