@@ -8,6 +8,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Project/Weapon/Weapon.h"
 #include "Project/BlasterComponent/TmpCombatComponent.h"
+#include "Project/BlasterComponent/BuffComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterAnimInstance.h"
@@ -46,6 +47,9 @@ ABlasterCharacter::ABlasterCharacter()
 	TmpCombat = CreateDefaultSubobject<UTmpCombatComponent>(TEXT("CombatComponent"));
 	TmpCombat->SetIsReplicated(true);
 
+	Buff = CreateDefaultSubobject<UBuffComponent>(TEXT("Buff"));
+	Buff->SetIsReplicated(true);
+
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(
 		ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
@@ -73,6 +77,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABlasterCharacter, Health);
+	DOREPLIFETIME(ABlasterCharacter, Shield);
 	DOREPLIFETIME(ABlasterCharacter, bDisableGamePlay);
 }
 
@@ -245,6 +250,13 @@ void ABlasterCharacter::PostInitializeComponents()
 
 	if (TmpCombat)
 		TmpCombat->Character = this;
+	if (Buff)
+	{
+		Buff->Character = this;
+		Buff->SetInitialSpeeds(GetCharacterMovement()->MaxWalkSpeed,
+			GetCharacterMovement()->MaxWalkSpeedCrouched);
+		Buff->SetInitialJumpVelocity(GetCharacterMovement()->JumpZVelocity);
+	}
 }
 
 void ABlasterCharacter::PlayFireMontage(bool bAiming)
@@ -605,10 +617,18 @@ float ABlasterCharacter::CalculateSpeed()
 	return Velocity.Size();
 }
 
-void ABlasterCharacter::OnRep_Health()
+void ABlasterCharacter::OnRep_Health(float LastHealth)
 {
 	UpdateHUDHealth();
-	PlayHitReactMontage();
+	if (Health < LastHealth)
+		PlayHitReactMontage();
+}
+
+void ABlasterCharacter::OnRep_Shield(float LastShield)
+{
+	UpdateHUDShield();
+	if (Shield < LastShield)
+		PlayHitReactMontage();
 }
 
 void ABlasterCharacter::UpdateHUDHealth()
@@ -617,6 +637,14 @@ void ABlasterCharacter::UpdateHUDHealth()
 		? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
 	if (BlasterPlayerController)
 		BlasterPlayerController->SetHUDHealth(Health, MaxHealth);
+}
+
+void ABlasterCharacter::UpdateHUDShield()
+{
+	BlasterPlayerController = (BlasterPlayerController == nullptr)
+		? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if (BlasterPlayerController)
+		BlasterPlayerController->SetHUDShield(Shield, MaxShield);
 }
 
 void ABlasterCharacter::PollInit()
