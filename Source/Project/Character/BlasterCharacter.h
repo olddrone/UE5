@@ -56,6 +56,9 @@ public:
 
 	void UpdateHUDHealth();
 	void UpdateHUDShield();
+	void UpdateHUDAmmo();
+
+	void SpawnDefaultWeapon();
 
 protected:
 	virtual void BeginPlay() override;
@@ -77,13 +80,12 @@ protected:
 
 	void FireButtonPressed();
 	void FireButtonReleased();
-
 	void PlayHitReactMontage();
-
 	void CalculateAO_Pitch();
-
 	void GrenadeButtonPressed();
-
+	void DropOrDestroyWeapon(AWeapon* Weapon);
+	void DropOrDestroyWeapons();
+	
 	UFUNCTION()
 		void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 			AController* InstigatorController, AActor* DamageCauser);
@@ -92,6 +94,7 @@ protected:
 
 	void RotateInPlace(float DeltaTime);
 
+	
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	USpringArmComponent* CameraBoom;
@@ -219,6 +222,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	UBuffComponent* Buff;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AWeapon> DefaultWeaponClass;
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);

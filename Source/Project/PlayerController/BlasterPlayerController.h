@@ -97,6 +97,11 @@ private:
 	bool bInitializeShield = false;
 	float HUDMaxShield;
 
+	float HUDCarriedAmmo;
+	bool bInitilizeCarriedAmmo = false;
+	float HUDWeaponAmmo;
+	bool bInitilizeWeaponAMmo = false;
+
 	float HUDScore;
 	bool bInitializeScore = false;
 	int32 HUDDefeats;
