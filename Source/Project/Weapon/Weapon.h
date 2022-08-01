@@ -18,6 +18,16 @@ enum class EWeaponState : uint8
 	EWS_MAX					UMETA(DisplayName = "DefaultMAX"),
 };
 
+UENUM(BlueprintType)
+enum class EFireType : uint8
+{
+	EFT_HitScan				UMETA(DisplayName = "Hit Scan Weapon"),
+	EFT_Projectile			UMETA(DisplayName = "Projectile Weapon"),
+	EFT_Shotgun				UMETA(DisplayName = "Shotgun Weapon"),
+	
+	EFT_MAX					UMETA(DisplayName = "DefaultMAX"),
+};
+
 class USphereComponent;
 class UWidgetComponent;
 class UAnimationAsset;
@@ -43,31 +53,26 @@ public:
 	virtual void Fire(const FVector& HitTarget);
 	void Dropped();
 	void AddAmmo(int32 AmmoToAdd);
+	FVector TraceEndWithScatter(const FVector& HitTarget);
 
 	UPROPERTY(EditAnywhere, Category = "Crosshairs")
 	UTexture2D* CrosshairCenter;
-
 	UPROPERTY(EditAnywhere, Category = "Crosshairs")
 	UTexture2D* CrosshairLeft;
-
 	UPROPERTY(EditAnywhere, Category = "Crosshairs")
 	UTexture2D* CrosshairRight;
-
 	UPROPERTY(EditAnywhere, Category = "Crosshairs")
 	UTexture2D* CrosshairTop;
-
 	UPROPERTY(EditAnywhere, Category = "Crosshairs")
 	UTexture2D* CrosshairBottom;
 
 	UPROPERTY(EditAnywhere)
 	float ZoomedFOV = 45.f;
-
 	UPROPERTY(EditAnywhere)
 	float ZoomInterpSpeed = 25.f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float FireDelay = 0.15f;
-
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	bool bAutomatic = true;
 
@@ -75,9 +80,13 @@ public:
 	USoundCue* EquipSound;
 
 	void EnableCustomDepth(bool bEnable);
-
-
 	bool bDestroyWeapon = false;
+	
+	UPROPERTY(EditAnywhere)
+	EFireType FireType;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
+	bool bUseScatter = false;
 
 protected:
 	virtual void BeginPlay() override;
@@ -93,6 +102,12 @@ protected:
 	UFUNCTION()
 	virtual void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
+	float DistanceToSphere = 800.f;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
+	float SphereRadius = 75.f;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
@@ -116,16 +131,21 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ACasing> CasingClass;
 
-	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Ammo)
+	UPROPERTY(EditAnywhere)
 	int32 Ammo;
 
-	UFUNCTION()
-	void OnRep_Ammo();
+	UFUNCTION(Client, Reliable)
+	void ClientUpdateAmmo(int32 ServerAmmo);
+
+	UFUNCTION(Client, Reliable)
+	void ClientAddAmmo(int32 AmmoToAdd);
 
 	void SpendRound();
 
 	UPROPERTY(EditAnywhere)
 	int32 MagCapacity;
+
+	int32 Sequence = 0;
 
 	UPROPERTY()
 	ABlasterCharacter* BlasterOwnerCharacter;
@@ -135,6 +155,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	EWeaponType WeaponType;
+
 
 public:
 	void SetWeaponState(EWeaponState State);

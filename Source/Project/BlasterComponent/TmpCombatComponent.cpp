@@ -16,6 +16,7 @@
 #include "Sound/SoundCue.h"
 #include "Project/Character/BlasterAnimInstance.h"
 #include "Project/Weapon/Projectile.h"
+#include "Project/Weapon/Shotgun.h"
 
 UTmpCombatComponent::UTmpCombatComponent()
 {
@@ -101,15 +102,96 @@ void UTmpCombatComponent::Fire()
 {
 	if (CanFire())
 	{
-		ServerFire(HitTarget);
-
 		if (EquippedWeapon)
 		{
 			bCanFire = false;
 			CrosshairShootingFector = 0.75f;
+
+			switch (EquippedWeapon->FireType)
+			{
+			case EFireType::EFT_Projectile:
+				FireProjectileWeapon();
+				break;
+			case EFireType::EFT_HitScan:
+				FireHitScanWeapon();
+				break;
+			case EFireType::EFT_Shotgun:
+				FireShotgun();
+				break;
+
+			}
 		}
 		StartFireTimer();
 	}
+}
+
+void UTmpCombatComponent::FireProjectileWeapon()
+{
+	if (EquippedWeapon && Character)
+	{
+		HitTarget = EquippedWeapon->bUseScatter 
+			? EquippedWeapon->TraceEndWithScatter(HitTarget) : HitTarget;
+		if (!Character->HasAuthority())
+			LocalFire(HitTarget);
+		ServerFire(HitTarget);
+	}
+}
+
+void UTmpCombatComponent::FireHitScanWeapon()
+{
+	if (EquippedWeapon && Character)
+	{
+		HitTarget = EquippedWeapon->bUseScatter 
+			? EquippedWeapon->TraceEndWithScatter(HitTarget) : HitTarget;
+		if (!Character->HasAuthority())
+			LocalFire(HitTarget);
+		ServerFire(HitTarget);
+	}
+}
+
+void UTmpCombatComponent::FireShotgun()
+{
+	AShotgun* Shotgun = Cast<AShotgun>(EquippedWeapon);
+	if (Shotgun && Character)
+	{
+		TArray<FVector_NetQuantize> HitTargets;
+		Shotgun->ShotgunTraceEndWithScatter(HitTarget, HitTargets);
+		if (!Character->HasAuthority())
+			ShotgunLocalFire(HitTargets);
+		ServerShotgunFire(HitTargets);
+	}
+}
+
+void UTmpCombatComponent::LocalFire(const FVector_NetQuantize& TraceHitTarget)
+{
+	if (EquippedWeapon == nullptr)
+		return;
+
+	if (Character && CombatState == ECombatState::ECS_Unoccupied)
+	{
+		Character->PlayFireMontage(bAiming);
+		EquippedWeapon->Fire(TraceHitTarget);
+	}
+}
+
+void UTmpCombatComponent::ShotgunLocalFire(const TArray<FVector_NetQuantize>& TraceHitTargets)
+{
+	AShotgun* Shotgun = Cast<AShotgun>(EquippedWeapon);
+	if (Shotgun == nullptr || Character == nullptr)
+		return;
+	if (CombatState == ECombatState::ECS_Reloading || CombatState == ECombatState::ECS_Unoccupied)
+	{
+		Character->PlayFireMontage(bAiming);
+		Shotgun->FireShotgun(TraceHitTargets);
+		CombatState = ECombatState::ECS_Unoccupied;
+	}
+}
+
+void UTmpCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	if (Character && Character->IsLocallyControlled() && !Character->HasAuthority())
+		return;
+	LocalFire(TraceHitTarget);
 }
 
 void UTmpCombatComponent::StartFireTimer()
@@ -135,23 +217,16 @@ void UTmpCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& T
 	MulticastFire(TraceHitTarget);
 }
 
-void UTmpCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+void UTmpCombatComponent::ServerShotgunFire_Implementation(const TArray<FVector_NetQuantize>& TraceHitTargets)
 {
-	if (EquippedWeapon == nullptr) 
+	MulticastShotgunFire(TraceHitTargets);
+}
+
+void UTmpCombatComponent::MulticastShotgunFire_Implementation(const TArray<FVector_NetQuantize>& TraceHitTargets)
+{
+	if (Character && Character->IsLocallyControlled() && !Character->HasAuthority())
 		return;
-	if (Character && CombatState == ECombatState::ECS_Reloading
-		&& EquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun)
-	{
-		Character->PlayFireMontage(bAiming);
-		EquippedWeapon->Fire(TraceHitTarget);
-		CombatState = ECombatState::ECS_Unoccupied;
-		return;
-	}
-	if (Character && CombatState == ECombatState::ECS_Unoccupied)
-	{
-		Character->PlayFireMontage(bAiming);
-		EquippedWeapon->Fire(TraceHitTarget);
-	}
+	ShotgunLocalFire(TraceHitTargets);
 }
 
 void UTmpCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
@@ -171,6 +246,8 @@ void UTmpCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 
 void UTmpCombatComponent::SwapWeapons()
 {
+	if (CombatState != ECombatState::ECS_Unoccupied) 
+		return;
 	AWeapon* TempWeapon = EquippedWeapon;
 	EquippedWeapon = SecondaryWeapon;
 	SecondaryWeapon = TempWeapon;
@@ -280,7 +357,7 @@ void UTmpCombatComponent::UpdateAmmoValues()
 	if (Controller)
 		Controller->SetHUDCarriedAmmo(CarriedAmmo);
 
-	EquippedWeapon->AddAmmo(-ReloadAmount);
+	EquippedWeapon->AddAmmo(ReloadAmount);
 }
 
 void UTmpCombatComponent::UpdateShotgunAmmoValues()
@@ -299,7 +376,7 @@ void UTmpCombatComponent::UpdateShotgunAmmoValues()
 	if (Controller)
 		Controller->SetHUDCarriedAmmo(CarriedAmmo);
 
-	EquippedWeapon->AddAmmo(-1);
+	EquippedWeapon->AddAmmo(1);
 	bCanFire = true;
 	if (EquippedWeapon->IsFull() || CarriedAmmo == 0)
 	{
