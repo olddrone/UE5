@@ -21,6 +21,12 @@ class AController;
 class USoundCue;
 class ABlasterPlayerState;
 class UBuffComponent;
+class UBoxComponent;
+class ULagCompensationComponent;
+
+
+
+
 
 UCLASS()
 class PROJECT_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
@@ -38,27 +44,31 @@ public:
 	void PlayReloadMontage();
 	void PlayElimMontage();
 	void PlayThrowGrenadeMontage();
-	
+
 
 	virtual void OnRep_ReplicatedMovement() override;
 
 	void Elim();
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastElim();
+		void MulticastElim();
 
 	virtual void Destroyed() override;
 
 	UPROPERTY(Replicated)
-	bool bDisableGamePlay = false;
+		bool bDisableGamePlay = false;
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void ShowSniperScopeWidget(bool bShowScope);
+		void ShowSniperScopeWidget(bool bShowScope);
 
 	void UpdateHUDHealth();
 	void UpdateHUDShield();
 	void UpdateHUDAmmo();
 
 	void SpawnDefaultWeapon();
+
+	UPROPERTY()
+	TMap<FName, UBoxComponent*> HitCollisionBoxes;
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -85,7 +95,7 @@ protected:
 	void GrenadeButtonPressed();
 	void DropOrDestroyWeapon(AWeapon* Weapon);
 	void DropOrDestroyWeapons();
-	
+
 	UFUNCTION()
 		void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 			AController* InstigatorController, AActor* DamageCauser);
@@ -94,7 +104,61 @@ protected:
 
 	void RotateInPlace(float DeltaTime);
 
-	
+
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* head;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* pelvis;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* spine_02;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* spine_03;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* upperarm_l;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* upperarm_r;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* lowerarm_l;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* lowerarm_r;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* hand_l;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* hand_r;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* backpack;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* blanket;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* thigh_l;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* thigh_r;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* calf_l;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* calf_r;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* foot_l;
+
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* foot_r;
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	USpringArmComponent* CameraBoom;
@@ -114,6 +178,12 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UTmpCombatComponent* TmpCombat;
 	//UCombatComponent* Combat;
+
+	UPROPERTY(VisibleAnywhere)
+	UBuffComponent* Buff;
+
+	UPROPERTY(VisibleAnywhere)
+	ULagCompensationComponent* LagCompensation;
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
@@ -220,9 +290,6 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* AttachedGrenade;
 
-	UPROPERTY(VisibleAnywhere)
-	UBuffComponent* Buff;
-
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AWeapon> DefaultWeaponClass;
 
@@ -250,4 +317,6 @@ public:
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
 	FORCEINLINE UBuffComponent* GetBuff() const { return Buff; };
+	bool IsLocallyReloading();
+	FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensation; };
 };
