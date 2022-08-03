@@ -6,12 +6,12 @@
 #include "Projectile.h"
 #include "ProjectileRocket.generated.h"
 
-
 class URocketMovementComponent;
 
 /**
  * 
  */
+
 UCLASS()
 class PROJECT_API AProjectileRocket : public AProjectile
 {
