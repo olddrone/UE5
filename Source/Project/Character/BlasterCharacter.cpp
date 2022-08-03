@@ -425,6 +425,15 @@ void ABlasterCharacter::PlayThrowGrenadeMontage()
 	}
 }
 
+void ABlasterCharacter::PlaySwapMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && SwapMontage)
+	{
+		AnimInstance->Montage_Play(SwapMontage);
+	}
+}
+
 void ABlasterCharacter::PlayHitReactMontage()
 {
 	if (TmpCombat == nullptr || TmpCombat->EquippedWeapon == nullptr)
@@ -559,8 +568,18 @@ void ABlasterCharacter::EquipButtonPressed()
 	if (bDisableGamePlay)
 		return;
 	if (TmpCombat)
-		ServerEquipButtonPressed();
-	
+	{
+		if (TmpCombat->CombatState == ECombatState::ECS_Unoccupied)
+			ServerEquipButtonPressed();
+		bool bSwap = TmpCombat->ShouldSwapWeapons() && !HasAuthority() &&
+			TmpCombat->CombatState == ECombatState::ECS_Unoccupied && OverlappingWeapon == nullptr;
+		if (bSwap)
+		{
+			PlaySwapMontage();
+			TmpCombat->CombatState = ECombatState::ECS_SwappingWeapons;
+			bFinishedSwapping = false;
+		}
+	}
 }
 
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
@@ -571,6 +590,7 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 			TmpCombat->EquipWeapon(OverlappingWeapon);
 		
 		else if (TmpCombat->ShouldSwapWeapons())
+
 			TmpCombat->SwapWeapons();
 	}
 }
