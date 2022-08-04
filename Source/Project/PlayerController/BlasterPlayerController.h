@@ -12,6 +12,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighPingDelegate, bool, bPingTooHig
 class ABlasterHUD;
 class UCharacterOverlay;
 class ABlasterGameMode;
+class UUserWidget;
+class UReturnToMainMenu;
 /**
  * 
  */
@@ -49,8 +51,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	void SetHUDTime();
-
 	void PollInit();
+	virtual void SetupInputComponent() override;
 
 	UFUNCTION(Server, Reliable)
 	void ServerRequestServerTime(float TimeOfClientRequest);
@@ -77,12 +79,20 @@ protected:
 	void StopHighPingWarning();
 	void CheckPing(float DeltaTime);
 
-	
+	void ShowReturnToMainMenu();
 
 private:
 	UPROPERTY()
 	ABlasterHUD* BlasterHUD;
 	
+	UPROPERTY(EditAnywhere, Category = "HUD")
+	TSubclassOf<UUserWidget> ReturnToMainMenuWidget;
+
+	UPROPERTY()
+	UReturnToMainMenu* ReturnToMainMenu;
+
+	bool bReturnToMainMenuOpen = false;
+
 	UPROPERTY()
 	ABlasterGameMode* BlasterGameMode;
 
