@@ -84,8 +84,7 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerScoreRequest(ABlasterCharacter* HitCharacter,
-			const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation,
-			float HitTime, AWeapon* DamageCauser);
+			const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);
 
 	// Projectile
 	FServerSideRewindResult ProjectileServerSideRewind(ABlasterCharacter* HitCharacter,

@@ -23,6 +23,9 @@
 #include "Project/Weapon/WeaponTypes.h"
 #include "Components/BoxComponent.h"
 #include "Project/BlasterComponent/LagCompensationComponent.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Project/GameState/BlasterGameState.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -175,20 +178,20 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 	TimeSinceLastMovementReplication = 0.f;
 }
 
-void ABlasterCharacter::Elim()
+void ABlasterCharacter::Elim(bool bPlayerLeftGame)
 {
 	DropOrDestroyWeapons();
-	MulticastElim();
-	GetWorldTimerManager().SetTimer(ElimTimer, this, 
-		&ABlasterCharacter::ElimTimerFinished, ElimDelay);
+	MulticastElim(bPlayerLeftGame);
+	
 }
 
-void ABlasterCharacter::MulticastElim_Implementation()
+void ABlasterCharacter::MulticastElim_Implementation(bool bPlayerLeftGame)
 {
+	bLeftGame = bPlayerLeftGame;
+
 	if (BlasterPlayerController)
-	{
 		BlasterPlayerController->SetHUDWeaponAmmo(0);
-	}
+	
 	bElimmed = true;
 	PlayElimMontage();
 
@@ -206,9 +209,8 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	bDisableGamePlay = true;
 	
 	if (TmpCombat)
-	{
 		TmpCombat->FireButtonPressed(false);
-	}
+	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -221,26 +223,40 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	}
 
 	if (ElimBotSound)
-	{
 		UGameplayStatics::SpawnSoundAtLocation(this, ElimBotSound, GetActorLocation());
-	}
 
 	bool bHideSniperScope = IsLocallyControlled() && TmpCombat && 
 		TmpCombat->bAiming && TmpCombat->EquippedWeapon && 
 		TmpCombat->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
 
 	if (bHideSniperScope)
-	{
 		ShowSniperScopeWidget(false);
-	}
+
+	if (CrownComponent)
+		CrownComponent->DestroyComponent();
+
+	GetWorldTimerManager().SetTimer(ElimTimer, this,
+		&ABlasterCharacter::ElimTimerFinished, ElimDelay);
 }
 
 void ABlasterCharacter::ElimTimerFinished()
 {
 	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
-	if (BlasterGameMode)
-	{
+	if (BlasterGameMode && !bLeftGame)
 		BlasterGameMode->RequestRespawn(this, Controller);
+	
+	if (bLeftGame && IsLocallyControlled())
+		OnLeftGame.Broadcast();
+}
+
+void ABlasterCharacter::ServerLeaveGame_Implementation()
+{
+	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	BlasterPlayerState = (BlasterPlayerState == nullptr)
+		? GetPlayerState<ABlasterPlayerState>() : BlasterPlayerState;
+	if (BlasterGameMode && BlasterPlayerState)
+	{
+		BlasterGameMode->PlayerLeftGame(BlasterPlayerState);
 	}
 }
 
@@ -261,6 +277,30 @@ void ABlasterCharacter::Destroyed()
 	}
 }
 
+void ABlasterCharacter::MulticastGainedTheLead_Implementation()
+{
+	if (CrownSystem == nullptr)
+		return;
+	if (CrownComponent == nullptr)
+	{
+		CrownComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(CrownSystem,
+			GetCapsuleComponent(), FName(), GetActorLocation() + FVector(0.f, 0.f, 110.f),
+			GetActorRotation(), EAttachLocation::KeepWorldPosition, false);
+	}
+	if (CrownComponent)
+	{
+		CrownComponent->Activate();
+	}
+}
+
+void ABlasterCharacter::MulticastLostTheLead_Implementation()
+{
+	if (CrownComponent)
+	{
+		CrownComponent->DestroyComponent();
+	}
+}
+
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -274,6 +314,8 @@ void ABlasterCharacter::BeginPlay()
 
 	if (AttachedGrenade)
 		AttachedGrenade->SetVisibility(false);
+
+	
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -504,8 +546,8 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage,
 		}
 		else
 		{
-			Shield = 0.f;
 			DamageToHealth = FMath::Clamp(DamageToHealth - Shield, 0.f, Damage);
+			Shield = 0.f;
 		}
 	}
 
@@ -837,6 +879,12 @@ void ABlasterCharacter::PollInit()
 		{
 			BlasterPlayerState->AddToScore(0.f);
 			BlasterPlayerState->AddToDefeats(0);
+
+			ABlasterGameState* BlasterGameState = Cast<ABlasterGameState>(UGameplayStatics::GetGameState(this));
+			if (BlasterGameState && BlasterGameState->TopScoringPlayers.Contains(BlasterPlayerState))
+			{
+				MulticastGainedTheLead();
+			}
 		}
 	}
 }

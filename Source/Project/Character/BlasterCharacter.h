@@ -10,6 +10,8 @@
 #include "Project/BlasterTypes/CombatState.h"
 #include "BlasterCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
+
 class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
@@ -23,10 +25,8 @@ class ABlasterPlayerState;
 class UBuffComponent;
 class UBoxComponent;
 class ULagCompensationComponent;
-
-
-
-
+class UNiagaraSystem;
+class UNiagaraComponent;
 
 UCLASS()
 class PROJECT_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
@@ -50,17 +50,18 @@ public:
 
 	virtual void OnRep_ReplicatedMovement() override;
 
-	void Elim();
+	void Elim(bool bPlayerLeftGame);
+
 	UFUNCTION(NetMulticast, Reliable)
-		void MulticastElim();
+	void MulticastElim(bool bPlayerLeftGame);
 
 	virtual void Destroyed() override;
 
 	UPROPERTY(Replicated)
-		bool bDisableGamePlay = false;
+	bool bDisableGamePlay = false;
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void ShowSniperScopeWidget(bool bShowScope);
+	void ShowSniperScopeWidget(bool bShowScope);
 
 	void UpdateHUDHealth();
 	void UpdateHUDShield();
@@ -72,6 +73,17 @@ public:
 	TMap<FName, UBoxComponent*> HitCollisionBoxes;
 
 	bool bFinishedSwapping = false;
+
+	UFUNCTION(Server, Reliable)
+	void ServerLeaveGame();
+
+	FOnLeftGame OnLeftGame;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastGainedTheLead();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastLostTheLead();
 
 protected:
 	virtual void BeginPlay() override;
@@ -262,6 +274,9 @@ private:
 
 	void ElimTimerFinished();
 
+	bool bLeftGame = false;
+
+
 	UPROPERTY(VisibleAnywhere)
 	UTimelineComponent* DissolveTimeline;
 
@@ -298,6 +313,12 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AWeapon> DefaultWeaponClass;
+
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* CrownSystem;
+
+	UPROPERTY()
+	UNiagaraComponent* CrownComponent;
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);

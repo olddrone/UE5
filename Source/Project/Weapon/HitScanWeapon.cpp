@@ -8,7 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
-#include "DrawDebugHelpers.h"
+//#include "DrawDebugHelpers.h"
 #include "WeaponTypes.h"
 #include "Project/BlasterComponent/LagCompensationComponent.h"
 
@@ -35,7 +35,10 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 			bool bCauseAuthDamage = !bUseServerSideRewind || OwnerPawn->IsLocallyControlled();
 			if (HasAuthority() && bCauseAuthDamage)
 			{
-				UGameplayStatics::ApplyDamage(BlasterCharacter, Damage,
+				const float DamageToCause = (FireHit.BoneName.ToString() == FString("head"))
+					? HeadShotDamage : Damage;
+
+				UGameplayStatics::ApplyDamage(BlasterCharacter, DamageToCause,
 					InstigatorController, this, UDamageType::StaticClass());
 			}
 			if (!HasAuthority() && bUseServerSideRewind)
@@ -51,7 +54,7 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 				{
 					BlasterOwnerCharacter->GetLagCompensation()->ServerScoreRequest(
 						BlasterCharacter, Start, HitTarget,
-						BlasterOwnerController->GetServerTime() - BlasterOwnerController->SingleTripTime, this);
+						BlasterOwnerController->GetServerTime() - BlasterOwnerController->SingleTripTime);
 				}
 			}
 		}
@@ -85,8 +88,10 @@ void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart,
 		FVector BeamEnd = End;
 		if (OutHit.bBlockingHit)
 			BeamEnd = OutHit.ImpactPoint;
+		else
+			OutHit.ImpactPoint = End;
 
-		DrawDebugSphere(GetWorld(), BeamEnd, 16.f, 12, FColor::Orange, true);
+		//DrawDebugSphere(GetWorld(), BeamEnd, 16.f, 12, FColor::Orange, true);
 
 		if (BeamParticles)
 		{
