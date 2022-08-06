@@ -8,6 +8,7 @@
 #include "Project/Interfaces/InteractWithCrosshairsInterface.h"
 #include "Components/TimelineComponent.h"
 #include "Project/BlasterTypes/CombatState.h"
+#include "Project/BlasterTypes/Team.h"
 #include "BlasterCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
@@ -27,6 +28,7 @@ class UBoxComponent;
 class ULagCompensationComponent;
 class UNiagaraSystem;
 class UNiagaraComponent;
+class ABlasterGameMode;
 
 UCLASS()
 class PROJECT_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
@@ -84,6 +86,8 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastLostTheLead();
+
+	void SetTeamColor(ETeam Team);
 
 protected:
 	virtual void BeginPlay() override;
@@ -293,7 +297,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Elim")
 	UMaterialInstanceDynamic* DynamicDissolveMaterialInstance;
 
-	UPROPERTY(EditAnywhere, Category = "Elim")
+	UPROPERTY(VisibleAnywhere, Category = "Elim")
 	UMaterialInstance* DissolveMaterialInstance;
 
 	UPROPERTY(EditAnywhere)
@@ -319,6 +323,24 @@ private:
 
 	UPROPERTY()
 	UNiagaraComponent* CrownComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Elim")
+	UMaterialInstance* RedDissolveMatInst;
+
+	UPROPERTY(EditAnywhere, Category = "Elim")
+	UMaterialInstance* RedMaterial;
+
+	UPROPERTY(EditAnywhere, Category = "Elim")
+	UMaterialInstance* BlueDissolveMatInst;
+
+	UPROPERTY(EditAnywhere, Category = "Elim")
+	UMaterialInstance* BlueMaterial;
+
+	UPROPERTY(EditAnywhere, Category = "Elim")
+	UMaterialInstance* OriginalMaterial;
+
+	UPROPERTY()
+	ABlasterGameMode* BlasterGameMode;
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
