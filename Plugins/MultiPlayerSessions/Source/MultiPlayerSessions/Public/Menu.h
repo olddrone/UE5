@@ -55,7 +55,10 @@ private:
 
 	UMultiplayerSessionsSubsystem* MultiplayerSessionsSubsystem;
 
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	int32 NumPublicConnections = 4;
+
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	FString MatchType = TEXT("FreeForAll");
 	FString PathToLobby = TEXT("");
 };

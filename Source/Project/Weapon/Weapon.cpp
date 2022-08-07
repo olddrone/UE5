@@ -76,13 +76,19 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	DOREPLIFETIME_CONDITION(AWeapon, bUseServerSideRewind, COND_OwnerOnly);
 }
 
-void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
+void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 
 	if (BlasterCharacter)
+	{
+		if (WeaponType == EWeaponType::EWT_Flag && BlasterCharacter->GetTeam() == Team)
+			return;
+		if (BlasterCharacter->IsHoldingTheFlag()) 
+			return;
 		BlasterCharacter->SetOverlappingWeapon(this);
+	}
 }
 
 void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -90,7 +96,13 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 {
 	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 	if (BlasterCharacter)
+	{
+		if (WeaponType == EWeaponType::EWT_Flag && BlasterCharacter->GetTeam() == Team) 
+			return;
+		if (BlasterCharacter->IsHoldingTheFlag())
+			return;
 		BlasterCharacter->SetOverlappingWeapon(nullptr);
+	}
 }
 
 void AWeapon::ClientUpdateAmmo_Implementation(int32 ServerAmmo)
@@ -347,13 +359,7 @@ FVector AWeapon::TraceEndWithScatter(const FVector& HitTarget)
 	const FVector EndLoc = SphereCenter + RandVec;
 	const FVector ToEndLoc = EndLoc - TraceStart;
 
-	/*
-	DrawDebugSphere(GetWorld(), SphereCenter, SphereRadius, 12, FColor::Red, true);
-	DrawDebugSphere(GetWorld(), EndLoc, 4.f, 12, FColor::Orange, true);
-	DrawDebugLine(GetWorld(), TraceStart,
-		FVector(TraceStart + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size()),
-		FColor::Cyan, true);
-		*/
+
 	return FVector(TraceStart + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size());
 
 }

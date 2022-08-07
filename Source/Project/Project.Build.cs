@@ -14,7 +14,7 @@ public class Project : ModuleRules
 			"Engine", 
 			"InputCore",
 			"Niagara",
-			"MultiplayerSessions", 
+			"MultiPlayerSessions", 
 			"OnlineSubsystem", 
 			"OnlineSubsystemSteam"
 		});

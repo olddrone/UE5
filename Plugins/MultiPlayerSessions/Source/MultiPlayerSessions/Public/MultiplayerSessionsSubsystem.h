@@ -37,8 +37,10 @@ public:
 	FMultiplayerOnDestroySessionComplete	MultiplayerOnDestroySessionComplete;
 	FMultiplayerOnStartSessionComplete		MultiplayerOnStartSessionComplete;
 
-protected:
+	int32								DesiredNumPublicConnections;
+	FString								DesiredMatchType;
 
+protected:
 	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
 	void OnFindSessionsComplete(bool bWasSuccessful);
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
@@ -51,7 +53,6 @@ private:
 	TSharedPtr<FOnlineSessionSettings>	LastSessionSettings;
 	TSharedPtr<FOnlineSessionSearch>	LastSessionSearch;
 
-private:
 	FOnCreateSessionCompleteDelegate	CreateSessionCompleteDelegate;
 	FDelegateHandle						CreateSessionCompleteDelegateHandle;
 
@@ -70,4 +71,5 @@ private:
 	bool								bCreateSessionOnDestroy = false;
 	int32								LastNumPublicConnections;
 	FString								LastMatchType;
+
 };

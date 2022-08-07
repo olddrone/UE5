@@ -45,5 +45,5 @@ private:
 
 public:
 	FORCEINLINE ETeam GetTeam() const { return Team;}
-	FORCEINLINE void SetTeam(ETeam TeamToSet);
+	void SetTeam(ETeam TeamToSet);
 };

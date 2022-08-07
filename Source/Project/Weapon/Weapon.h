@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "WeaponTypes.h"
+#include "Project/BlasterTypes/Team.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -167,6 +168,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	EWeaponType WeaponType;
+	
+	UPROPERTY(EditAnywhere)
+	ETeam Team;
 
 public:
 	void SetWeaponState(EWeaponState State);
@@ -182,4 +186,5 @@ public:
 	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 	FORCEINLINE float GetDamage() const { return Damage; }
 	FORCEINLINE float GetHeadShotDamage() const { return HeadShotDamage; }
+	FORCEINLINE ETeam GetTeam() const { return Team; }
 };
