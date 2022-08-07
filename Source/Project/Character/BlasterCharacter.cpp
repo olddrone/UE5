@@ -355,6 +355,13 @@ void ABlasterCharacter::Tick(float DeltaTime)
 
 void ABlasterCharacter::RotateInPlace(float DeltaTime)
 {
+	if (TmpCombat && TmpCombat->bHoldingTheFlag)
+	{
+		bUseControllerRotationYaw = false;
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
 	if (bDisableGamePlay)
 	{
 		bUseControllerRotationYaw = false;
@@ -531,7 +538,11 @@ void ABlasterCharacter::CalculateAO_Pitch()
 void ABlasterCharacter::GrenadeButtonPressed()
 {
 	if (TmpCombat)
+	{
+		if (TmpCombat->bHoldingTheFlag)
+			return;
 		TmpCombat->ThrowGrenade();
+	}
 }
 
 void ABlasterCharacter::DropOrDestroyWeapon(AWeapon* Weapon)
@@ -553,6 +564,9 @@ void ABlasterCharacter::DropOrDestroyWeapons()
 
 		if (TmpCombat->SecondaryWeapon)
 			DropOrDestroyWeapon(TmpCombat->SecondaryWeapon);
+
+		if (TmpCombat->TheFlag)
+			TmpCombat->TheFlag->Dropped();
 	}
 }
 
@@ -641,6 +655,9 @@ void ABlasterCharacter::EquipButtonPressed()
 		return;
 	if (TmpCombat)
 	{
+		if (TmpCombat->bHoldingTheFlag)
+			return;
+
 		if (TmpCombat->CombatState == ECombatState::ECS_Unoccupied)
 			ServerEquipButtonPressed();
 		bool bSwap = TmpCombat->ShouldSwapWeapons() && !HasAuthority() &&
@@ -669,6 +686,9 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 
 void ABlasterCharacter::CrouchButtonPressed()
 {
+	if (TmpCombat && TmpCombat->bHoldingTheFlag)
+		return;
+
 	if (bDisableGamePlay)
 		return;
 	if (bIsCrouched)
@@ -679,6 +699,9 @@ void ABlasterCharacter::CrouchButtonPressed()
 
 void ABlasterCharacter::ReloadButtonPressed()
 {
+	if (TmpCombat && TmpCombat->bHoldingTheFlag)
+		return;
+
 	if (bDisableGamePlay)
 		return;
 	if (TmpCombat)
@@ -689,6 +712,9 @@ void ABlasterCharacter::ReloadButtonPressed()
 
 void ABlasterCharacter::AimButtonPressed()
 {
+	if (TmpCombat && TmpCombat->bHoldingTheFlag)
+		return;
+
 	if (bDisableGamePlay)
 		return;
 	if (TmpCombat)
@@ -773,6 +799,9 @@ void ABlasterCharacter::SimProxiesTurn()
 
 void ABlasterCharacter::Jump()
 {
+	if (TmpCombat && TmpCombat->bHoldingTheFlag)
+		return;
+
 	if (bDisableGamePlay)
 		return;
 	if (bIsCrouched)
@@ -783,6 +812,9 @@ void ABlasterCharacter::Jump()
 
 void ABlasterCharacter::FireButtonPressed()
 {
+	if (TmpCombat && TmpCombat->bHoldingTheFlag)
+		return;
+
 	if (bDisableGamePlay)
 		return;
 	if (TmpCombat)
@@ -1003,5 +1035,9 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 		LastWeapon->ShowPickupWidget(false);
 }
 
-
-
+bool ABlasterCharacter::IsHoldingTheFlag() const
+{
+	if (TmpCombat == nullptr)
+		return false;
+	return TmpCombat->bHoldingTheFlag;
+}

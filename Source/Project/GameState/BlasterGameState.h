@@ -37,8 +37,9 @@ public:
 	UFUNCTION()
 	void OnRep_BlueTeaamScore();
 
-	void RedTeamScore();
-	void BlueTeamScore();
+	void RedTeamScores();
+
+	void BlueTeamScores();
 
 private:
 	float TopScore = 0.f;

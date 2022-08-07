@@ -36,6 +36,7 @@ void UTmpCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME_CONDITION(UTmpCombatComponent, CarriedAmmo, COND_OwnerOnly);
 	DOREPLIFETIME(UTmpCombatComponent, CombatState);
 	DOREPLIFETIME(UTmpCombatComponent, Grenades);
+	DOREPLIFETIME(UTmpCombatComponent, bHoldingTheFlag);
 }
 
 void UTmpCombatComponent::PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount)
@@ -257,13 +258,26 @@ void UTmpCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 		return;
 	if (CombatState != ECombatState::ECS_Unoccupied)
 		return;
-	if (EquippedWeapon != nullptr && SecondaryWeapon == nullptr)
-		EquipSecondaryWeapon(WeaponToEquip);
+	if (WeaponToEquip->GetWeaponType() == EWeaponType::EWT_Flag)
+	{
+		Character->Crouch();
+		bHoldingTheFlag = true;
+		
+		WeaponToEquip->SetWeaponState(EWeaponState::EWS_Equipped);
+		AttachFlagToLeftHand(WeaponToEquip);
+		WeaponToEquip->SetOwner(Character);
+		TheFlag = WeaponToEquip;
+	}
 	else
-		EquipPrimaryWeapon(WeaponToEquip);
+	{
+		if (EquippedWeapon != nullptr && SecondaryWeapon == nullptr)
+			EquipSecondaryWeapon(WeaponToEquip);
+		else
+			EquipPrimaryWeapon(WeaponToEquip);
 
-	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-	Character->bUseControllerRotationYaw = true;
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
 }
 
 void UTmpCombatComponent::SwapWeapons()
@@ -593,6 +607,16 @@ void UTmpCombatComponent::AttachActorToLeftHand(AActor* ActorToAttach)
 		HandSocket->AttachActor(ActorToAttach, Character->GetMesh());
 }
 
+void UTmpCombatComponent::AttachFlagToLeftHand(AActor* Flag)
+{
+	if (Character == nullptr || Character->GetMesh() == nullptr || Flag == nullptr)
+		return;
+
+	const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("FlagSocket"));
+	if (HandSocket)
+		HandSocket->AttachActor(Flag, Character->GetMesh());
+}
+
 void UTmpCombatComponent::AttachActorToBackpack(AActor* ActorToAttach)
 {
 	if (Character == nullptr || Character->GetMesh() == nullptr || ActorToAttach == nullptr)
@@ -851,4 +875,10 @@ void UTmpCombatComponent::InitializeCarriedAmmo()
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_Shotgun,		StartingShotgunAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_SniperRifle,	StartingSniperAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_GrenadeLauncher,StartingGrenadeLauncherAmmo);
+}
+
+void UTmpCombatComponent::OnRep_HoldingTheFlag()
+{
+	if (bHoldingTheFlag && Character && Character->IsLocallyControlled())
+		Character->Crouch();
 }
