@@ -618,6 +618,8 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage,
 
 	Damage = BlasterGameMode->CalculateDamage(InstigatorController, Controller, Damage);
 	float DamageToHealth = Damage;
+	
+
 
 	if (Shield > 0.f)
 	{

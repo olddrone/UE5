@@ -178,6 +178,8 @@ void ULagCompensationComponent::ProjectileServerScoreRequest_Implementation(ABla
 			? Character->GetEquippedWeapon()->GetHeadShotDamage() 
 			: Character->GetEquippedWeapon()->GetDamage();
 
+		
+
 		UGameplayStatics::ApplyDamage(HitCharacter, Damage,
 			Character->Controller, Character->GetEquippedWeapon(), UDamageType::StaticClass());
 	}

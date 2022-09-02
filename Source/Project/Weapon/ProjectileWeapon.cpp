@@ -15,6 +15,7 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 	if (MuzzleFlashSocket && World)
 	{
 		FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+		
 		FVector ToTarget = HitTarget - SocketTransform.GetLocation();
 		FRotator TargetRotation = ToTarget.Rotation();
 
@@ -25,49 +26,43 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 		AProjectile* SpawnedProjectile = nullptr;
 		if (bUseServerSideRewind)
 		{
-			if (InstigatorPawn->HasAuthority())
+			if (InstigatorPawn->HasAuthority()) 
 			{
-				if (InstigatorPawn->IsLocallyControlled())
+				if (InstigatorPawn->IsLocallyControlled()) 
 				{
-					SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass,
-						SocketTransform.GetLocation(), TargetRotation, SpawnParams);				
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 					SpawnedProjectile->bUseServerSideRewind = false;
 					SpawnedProjectile->Damage = Damage;
 					SpawnedProjectile->HeadShotDamage = HeadShotDamage;
 				}
-				else
+				else 
 				{
-					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass,
-						SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 					SpawnedProjectile->bUseServerSideRewind = true;
 				}
 			}
-			else
+			else 
 			{
-				if (InstigatorPawn->IsLocallyControlled())
+				
+				if (InstigatorPawn->IsLocallyControlled()) // client, locally controlled - spawn non-replicated projectile, use SSR
 				{
-					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass,
-						SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 					SpawnedProjectile->bUseServerSideRewind = true;
 					SpawnedProjectile->TraceStart = SocketTransform.GetLocation();
-					SpawnedProjectile->InitialVelocity = SpawnedProjectile->GetActorForwardVector()
-						* SpawnedProjectile->InitialSpeed;
+					SpawnedProjectile->InitialVelocity = SpawnedProjectile->GetActorForwardVector() * SpawnedProjectile->InitialSpeed;
 				}
-				else
+				else 
 				{
-					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass,
-						SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ServerSideRewindProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 					SpawnedProjectile->bUseServerSideRewind = false;
-					
 				}
 			}
 		}
-		else
+		else 
 		{
 			if (InstigatorPawn->HasAuthority())
 			{
-				SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass,
-					SocketTransform.GetLocation(), TargetRotation, SpawnParams);
+				SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, SocketTransform.GetLocation(), TargetRotation, SpawnParams);
 				SpawnedProjectile->bUseServerSideRewind = false;
 				SpawnedProjectile->Damage = Damage;
 				SpawnedProjectile->HeadShotDamage = HeadShotDamage;

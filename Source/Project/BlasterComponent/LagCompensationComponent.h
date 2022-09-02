@@ -70,12 +70,9 @@ class PROJECT_API ULagCompensationComponent : public UActorComponent
 
 public:
 	ULagCompensationComponent();
-
 	friend class ABlasterCharacter;
-
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 		FActorComponentTickFunction* ThisTickFunction) override;
-
 	void ShowFramePackage(const FFramePackage& Package, const FColor& Color);
 
 	// HitScan
@@ -107,13 +104,13 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	void SaveFramePackage(FFramePackage& Package);
-	FFramePackage InterpBetweenFrames(const FFramePackage& OlderFrame,
+	FFramePackage InterpBetweenFrames(const FFramePackage& OlderFrame, 
 		const FFramePackage& YoungerFrame, float HitTime);
 
 	void CacheBoxPositions(ABlasterCharacter* HitCharacter, FFramePackage& OutFramePackage);
 	void MoveBoxes(ABlasterCharacter* HitCharacter, const FFramePackage& Package);
 	void ResetHitBoxes(ABlasterCharacter* HitCharacter, const FFramePackage& Package);
-	void EnableCharacterMeshCollision(ABlasterCharacter* HitCharacter,
+	void EnableCharacterMeshCollision(ABlasterCharacter* HitCharacter, 
 		ECollisionEnabled::Type CollisionEnabled);
 	void SaveFramePackage();
 	FFramePackage GetFrameToCheck(ABlasterCharacter* HitCharacter, float HitTime);
@@ -142,6 +139,5 @@ private:
 	UPROPERTY(EditAnywhere)
 	float MaxRecordTime = 4.f;
 
-public:
 
 };
