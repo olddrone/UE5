@@ -18,7 +18,7 @@ class UCameraComponent;
 class UWidgetComponent;
 class AWeapon;
 class UAnimMontage;
-class UTmpCombatComponent;
+class UCombatComponent;
 class ABlasterPlayerController;
 class AController;
 class USoundCue;
@@ -197,8 +197,7 @@ private:
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	UTmpCombatComponent* TmpCombat;
-	//UCombatComponent* Combat;
+	UCombatComponent* Combat;
 
 	UPROPERTY(VisibleAnywhere)
 	UBuffComponent* Buff;
@@ -363,7 +362,7 @@ public:
 	FORCEINLINE void SetShield(float Amount) { Shield = Amount; }
 	FORCEINLINE float GetMaxShield() const { return MaxShield; }
 	ECombatState GetCombatState() const;
-	FORCEINLINE UTmpCombatComponent* GetTmpCombat() const { return TmpCombat; }
+	FORCEINLINE UCombatComponent* GetCombat() const { return Combat; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGamePlay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }

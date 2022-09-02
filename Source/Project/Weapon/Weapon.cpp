@@ -11,7 +11,7 @@
 #include "Casing.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Project/PlayerController/BlasterPlayerController.h"
-#include "Project/BlasterComponent/TmpCombatComponent.h"
+#include "Project/BlasterComponent/CombatComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 AWeapon::AWeapon()
@@ -122,8 +122,8 @@ void AWeapon::ClientAddAmmo_Implementation(int32 AmmoToAdd)
 	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
 	BlasterOwnerCharacter = (BlasterOwnerCharacter == nullptr)
 		? Cast<ABlasterCharacter>(GetOwner()) : BlasterOwnerCharacter;
-	if (BlasterOwnerCharacter && BlasterOwnerCharacter->GetTmpCombat() && IsFull())
-		BlasterOwnerCharacter->GetTmpCombat()->JumpToShotgunEnd();
+	if (BlasterOwnerCharacter && BlasterOwnerCharacter->GetCombat() && IsFull())
+		BlasterOwnerCharacter->GetCombat()->JumpToShotgunEnd();
 	SetHUDAmmo();
 }
 

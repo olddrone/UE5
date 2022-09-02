@@ -7,7 +7,7 @@
 #include "Project/HUD/BlasterHUD.h"
 #include "Project/Weapon/WeaponTypes.h"
 #include "Project/BlasterTypes/CombatState.h"
-#include "TmpCombatComponent.generated.h"
+#include "CombatComponent.generated.h"
 
 class ABlasterCharacter;
 class AWeapon;
@@ -15,13 +15,13 @@ class ABlasterPlayerController;
 class ABlasterHUD;
 class AProjectile;
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class PROJECT_API UTmpCombatComponent : public UActorComponent
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class PROJECT_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	UTmpCombatComponent();
+	UCombatComponent();
 	friend class ABlasterCharacter;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 		FActorComponentTickFunction* ThisTickFunction) override;
@@ -32,29 +32,29 @@ public:
 	void Reload();
 
 	UFUNCTION(BlueprintCallable)
-	void FinishReloading();
+		void FinishReloading();
 
 	UFUNCTION(BlueprintCallable)
-	void FinishSwap();
+		void FinishSwap();
 
 	UFUNCTION(BlueprintCallable)
-	void FinishSwapAttachWeapons();
+		void FinishSwapAttachWeapons();
 
 	void FireButtonPressed(bool bPressed);
 
 	UFUNCTION(BlueprintCallable)
-	void ShotgunShellReload();
+		void ShotgunShellReload();
 
 	void JumpToShotgunEnd();
 
 	UFUNCTION(BlueprintCallable)
-	void ThrowGrenadeFinished();
+		void ThrowGrenadeFinished();
 
 	UFUNCTION(BlueprintCallable)
-	void LaunchGrenade();
+		void LaunchGrenade();
 
 	UFUNCTION(Server, Reliable)
-	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
+		void ServerLaunchGrenade(const FVector_NetQuantize& Target);
 
 	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
 	bool bLocallyReloading = false;
@@ -64,13 +64,13 @@ protected:
 	void SetAiming(bool bIsAiming);
 
 	UFUNCTION(Server, Reliable)
-	void ServerSetAiming(bool bIsAiming);
+		void ServerSetAiming(bool bIsAiming);
 
 	UFUNCTION()
-	void OnRep_EquippedWeapon();
+		void OnRep_EquippedWeapon();
 
 	UFUNCTION()
-	void OnRep_SecondaryWeapon();
+		void OnRep_SecondaryWeapon();
 
 	void Fire();
 	void FireProjectileWeapon();
@@ -81,23 +81,23 @@ protected:
 	void ShotgunLocalFire(const TArray<FVector_NetQuantize>& TraceHitTargets);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerFire(const FVector_NetQuantize& TraceHitTarget, float FireDelay);
+		void ServerFire(const FVector_NetQuantize& TraceHitTarget, float FireDelay);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastFire(const FVector_NetQuantize& TraceHitTarget);
+		void MulticastFire(const FVector_NetQuantize& TraceHitTarget);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerShotgunFire(const TArray<FVector_NetQuantize>& TraceHitTargets, float FireDelay);
+		void ServerShotgunFire(const TArray<FVector_NetQuantize>& TraceHitTargets, float FireDelay);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastShotgunFire(const TArray<FVector_NetQuantize>& TraceHitTargets);
+		void MulticastShotgunFire(const TArray<FVector_NetQuantize>& TraceHitTargets);
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
 	void SetHUDCrosshairs(float DeltaTime);
 
 	UFUNCTION(Server, Reliable)
-	void ServerReload();
+		void ServerReload();
 
 	void HandleReload();
 
@@ -106,10 +106,10 @@ protected:
 	void ThrowGrenade();
 
 	UFUNCTION(Server, Reliable)
-	void ServerThrowGrenade();
+		void ServerThrowGrenade();
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<AProjectile> GrenadeClass;
+		TSubclassOf<AProjectile> GrenadeClass;
 
 	void DropEquippedWeapon();
 	// AttachActorToHand(AActor* ActorToAttach, FNAME hand);
@@ -127,31 +127,31 @@ protected:
 
 private:
 	UPROPERTY()
-	ABlasterCharacter* Character;
+		ABlasterCharacter* Character;
 	UPROPERTY()
-	ABlasterPlayerController* Controller;
+		ABlasterPlayerController* Controller;
 	UPROPERTY()
-	ABlasterHUD* HUD;
+		ABlasterHUD* HUD;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
-	AWeapon* EquippedWeapon;
+		AWeapon* EquippedWeapon;
 
 	UPROPERTY(ReplicatedUsing = OnRep_SecondaryWeapon)
-	AWeapon* SecondaryWeapon;
+		AWeapon* SecondaryWeapon;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Aiming)
-	bool bAiming = false;
+		bool bAiming = false;
 
 	bool bAimButtonPressed = false;
 
 	UFUNCTION()
-	void OnRep_Aiming();
+		void OnRep_Aiming();
 
 	UPROPERTY(EditAnywhere)
-	float BaseWalkSpeed;
+		float BaseWalkSpeed;
 
 	UPROPERTY(EditAnywhere)
-	float AimWalkSpeed;
+		float AimWalkSpeed;
 
 	bool bFireButtonPressed;
 
@@ -167,12 +167,12 @@ private:
 	float DefaultFOV;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	float ZoomedFOV = 30.f;
+		float ZoomedFOV = 30.f;
 
 	float CurrentFOV;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	float ZoomInterpSpeed = 20.f;
+		float ZoomInterpSpeed = 20.f;
 
 	void InterpFOV(float DeltaTime);
 
@@ -186,67 +186,67 @@ private:
 	bool CanFire();
 
 	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
-	int32 CarriedAmmo;
+		int32 CarriedAmmo;
 
 	UFUNCTION()
-	void OnRep_CarriedAmmo();
+		void OnRep_CarriedAmmo();
 
 	TMap<EWeaponType, int32> CarriedAmmoMap;
 
 	UPROPERTY(EditAnywhere)
-	int32 MaxCarriedAmmo = 500;
+		int32 MaxCarriedAmmo = 500;
 
 	UPROPERTY(EditAnywhere)
-	int32 StartingARAmmo = 30;
+		int32 StartingARAmmo = 30;
 
 	UPROPERTY(EditAnywhere)
-	int32 StartingRocketAmmo = 0;
+		int32 StartingRocketAmmo = 0;
 
 	UPROPERTY(EditAnywhere)
-	int32 StartingPistolAmmo = 0;
+		int32 StartingPistolAmmo = 0;
 
 	UPROPERTY(EditAnywhere)
-	int32 StartingSMGAmmo = 0;
+		int32 StartingSMGAmmo = 0;
 
 	UPROPERTY(EditAnywhere)
-	int32 StartingShotgunAmmo = 0;
+		int32 StartingShotgunAmmo = 0;
 
 	UPROPERTY(EditAnywhere)
-	int32 StartingSniperAmmo = 0;
+		int32 StartingSniperAmmo = 0;
 
 	UPROPERTY(EditAnywhere)
-	int32 StartingGrenadeLauncherAmmo = 0;
+		int32 StartingGrenadeLauncherAmmo = 0;
 
 	void InitializeCarriedAmmo();
 
 	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
-	ECombatState CombatState = ECombatState::ECS_Unoccupied;
+		ECombatState CombatState = ECombatState::ECS_Unoccupied;
 
 	UFUNCTION()
-	void OnRep_CombatState();
+		void OnRep_CombatState();
 
 	void UpdateAmmoValues();
 	void UpdateShotgunAmmoValues();
 
 	UPROPERTY(ReplicatedUsing = OnRep_Grenades)
-	int32 Grenades = 4;
+		int32 Grenades = 4;
 
 	UFUNCTION()
-	void OnRep_Grenades();
+		void OnRep_Grenades();
 
 	UPROPERTY(EditAnywhere)
-	int32 MaxGrenades = 4;
+		int32 MaxGrenades = 4;
 
 	void UpdateHUDGrenades();
 
 	UPROPERTY(ReplicatedUsing = OnRep_HoldingTheFlag)
-	bool bHoldingTheFlag = false;
-	
+		bool bHoldingTheFlag = false;
+
 	UFUNCTION()
-	void OnRep_HoldingTheFlag();
+		void OnRep_HoldingTheFlag();
 
 	UPROPERTY()
-	AWeapon* TheFlag;
+		AWeapon* TheFlag;
 
 public:
 	FORCEINLINE int32 GetGrenades() const { return Grenades; }

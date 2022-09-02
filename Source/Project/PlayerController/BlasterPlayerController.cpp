@@ -12,7 +12,7 @@
 #include "Project/PlayerState/BlasterPlayerState.h"
 #include "Project/HUD/Announcement.h"
 #include "Kismet/GamePlayStatics.h"
-#include "Project/BlasterComponent/TmpCombatComponent.h"
+#include "Project/BlasterComponent/CombatComponent.h"
 #include "Project/GameState/BlasterGameState.h"
 #include "Components/Image.h"
 #include "Project/HUD/ReturnToMainMenu.h"
@@ -277,9 +277,9 @@ void ABlasterPlayerController::PollInit()
 					SetHUDWeaponAmmo(HUDWeaponAmmo);
 
 				ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(GetPawn());
-				if (BlasterCharacter && BlasterCharacter->GetTmpCombat())
+				if (BlasterCharacter && BlasterCharacter->GetCombat())
 					if (bInitializeGrenades)
-						SetHUDGrenades(BlasterCharacter->GetTmpCombat()->GetGrenades());
+						SetHUDGrenades(BlasterCharacter->GetCombat()->GetGrenades());
 			}
 		}
 	}
@@ -666,10 +666,10 @@ void ABlasterPlayerController::HandleCooldown()
 		}
 	}
 	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(GetPawn());
-	if (BlasterCharacter && BlasterCharacter->GetTmpCombat())
+	if (BlasterCharacter && BlasterCharacter->GetCombat())
 	{
 		BlasterCharacter->bDisableGamePlay = true;
-		BlasterCharacter->GetTmpCombat()->FireButtonPressed(false);
+		BlasterCharacter->GetCombat()->FireButtonPressed(false);
 	}
 }
 
