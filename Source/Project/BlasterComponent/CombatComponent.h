@@ -156,10 +156,10 @@ private:
 
 	bool bFireButtonPressed;
 
-	float CrosshairVelocityFector;
-	float CrosshairInAirFector;
-	float CrosshairAimFector;
-	float CrosshairShootingFector;
+	float CrosshairVelocityFactor;
+	float CrosshairInAirFactor;
+	float CrosshairAimFactor;
+	float CrosshairShootingFactor;
 
 	FVector HitTarget;
 

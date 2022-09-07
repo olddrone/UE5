@@ -104,11 +104,10 @@ void UCombatComponent::Fire()
 {
 	if (CanFire())
 	{
+		bCanFire = false;
 		if (EquippedWeapon)
 		{
-			bCanFire = false;
-			CrosshairShootingFector = 0.75f;
-
+			CrosshairShootingFactor = 0.75f;
 			switch (EquippedWeapon->FireType)
 			{
 			case EFireType::EFT_Projectile:
@@ -778,27 +777,27 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 			FVector Velocity = Character->GetVelocity();
 			Velocity.Z = 0.f;
 
-			CrosshairVelocityFector = FMath::GetMappedRangeValueClamped(
+			CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(
 				WalkSpeedRange, VelocityMultiplierRange, Velocity.Size());
 
 			if (Character->GetCharacterMovement()->IsFalling())
-				CrosshairInAirFector = FMath::FInterpTo(CrosshairInAirFector, 2.25f, DeltaTime, 2.25f);
+				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f);
 			else
-				CrosshairInAirFector = FMath::FInterpTo(CrosshairInAirFector, 0.f, DeltaTime, 30.f);
+				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
 
 			if (bAiming)
-				CrosshairAimFector = FMath::FInterpTo(CrosshairAimFector, 0.58f, DeltaTime, 30.f);
+				CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.58f, DeltaTime, 30.f);
 			else
-				CrosshairAimFector = FMath::FInterpTo(CrosshairAimFector, 0.f, DeltaTime, 30.f);
+				CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, 30.f);
 
-			CrosshairShootingFector = FMath::FInterpTo(CrosshairShootingFector, 0.f, DeltaTime, 40.f);
+			CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaTime, 2.f);
 
 			HUDPackage.CrosshairSpread =
 				0.5f +
-				CrosshairVelocityFector +
-				CrosshairInAirFector -
-				CrosshairAimFector +
-				CrosshairShootingFector;
+				CrosshairVelocityFactor +
+				CrosshairInAirFactor -
+				CrosshairAimFactor +
+				CrosshairShootingFactor;
 
 			HUD->SetHUDPackage(HUDPackage);
 		}
