@@ -757,8 +757,10 @@ void ABlasterCharacter::AimButtonPressed()
 	if (bDisableGamePlay)
 		return;
 	if (Combat)
+	{
 		Combat->SetAiming(true);
-	
+		Combat->SetScatter(false);
+	}
 }
 
 void ABlasterCharacter::AimButtonReleased()
@@ -766,8 +768,10 @@ void ABlasterCharacter::AimButtonReleased()
 	if (bDisableGamePlay)
 		return;
 	if (Combat)
+	{
 		Combat->SetAiming(false);
-	
+		Combat->SetScatter(true);
+	}
 }
 
 void ABlasterCharacter::AimOffset(float DeltaTime)
@@ -858,6 +862,7 @@ void ABlasterCharacter::FireButtonPressed()
 		return;
 	if (Combat)
 		Combat->FireButtonPressed(true);
+
 }
 
 void ABlasterCharacter::FireButtonReleased()
@@ -866,6 +871,7 @@ void ABlasterCharacter::FireButtonReleased()
 		return;
 	if (Combat)
 		Combat->FireButtonPressed(false);
+	
 }
 
 void ABlasterCharacter::TurnInPlace(float DeltaTime)

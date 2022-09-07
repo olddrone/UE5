@@ -30,6 +30,7 @@ public:
 	void EquipWeapon(class AWeapon* WeaponToEquip);
 	void SwapWeapons();
 	void Reload();
+	void SetScatter(bool Scatter);
 
 	UFUNCTION(BlueprintCallable)
 		void FinishReloading();
@@ -186,36 +187,36 @@ private:
 	bool CanFire();
 
 	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
-		int32 CarriedAmmo;
+	int32 CarriedAmmo;
 
 	UFUNCTION()
-		void OnRep_CarriedAmmo();
+	void OnRep_CarriedAmmo();
 
 	TMap<EWeaponType, int32> CarriedAmmoMap;
 
 	UPROPERTY(EditAnywhere)
-		int32 MaxCarriedAmmo = 500;
+	int32 MaxCarriedAmmo = 500;
 
 	UPROPERTY(EditAnywhere)
-		int32 StartingARAmmo = 30;
+	int32 StartingARAmmo = 30;
 
 	UPROPERTY(EditAnywhere)
-		int32 StartingRocketAmmo = 0;
+	int32 StartingRocketAmmo = 0;
 
 	UPROPERTY(EditAnywhere)
-		int32 StartingPistolAmmo = 0;
+	int32 StartingPistolAmmo = 0;
 
 	UPROPERTY(EditAnywhere)
-		int32 StartingSMGAmmo = 0;
+	int32 StartingSMGAmmo = 0;
 
 	UPROPERTY(EditAnywhere)
-		int32 StartingShotgunAmmo = 0;
+	int32 StartingShotgunAmmo = 0;
 
 	UPROPERTY(EditAnywhere)
-		int32 StartingSniperAmmo = 0;
+	int32 StartingSniperAmmo = 0;
 
 	UPROPERTY(EditAnywhere)
-		int32 StartingGrenadeLauncherAmmo = 0;
+	int32 StartingGrenadeLauncherAmmo = 0;
 
 	void InitializeCarriedAmmo();
 
@@ -247,6 +248,9 @@ private:
 
 	UPROPERTY()
 		AWeapon* TheFlag;
+	
+	bool bSniperHUDAble;
+
 
 public:
 	FORCEINLINE int32 GetGrenades() const { return Grenades; }

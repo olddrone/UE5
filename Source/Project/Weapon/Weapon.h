@@ -87,7 +87,7 @@ public:
 	EFireType FireType;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
-	bool bUseScatter = false;
+	bool bUseScatter = true;
 
 protected:
 	virtual void BeginPlay() override;
@@ -187,4 +187,5 @@ public:
 	FORCEINLINE float GetDamage() const { return Damage; }
 	FORCEINLINE float GetHeadShotDamage() const { return HeadShotDamage; }
 	FORCEINLINE ETeam GetTeam() const { return Team; }
+	FORCEINLINE void SetScatter(bool UseScatter) { bUseScatter = UseScatter; }
 };

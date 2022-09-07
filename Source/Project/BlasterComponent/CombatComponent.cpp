@@ -21,7 +21,7 @@
 UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-
+	bSniperHUDAble = false;
 	BaseWalkSpeed = 600.f;
 	AimWalkSpeed = 450.f;
 }
@@ -335,6 +335,11 @@ void UCombatComponent::Reload()
 		HandleReload();
 		bLocallyReloading = true;
 	}
+}
+
+void UCombatComponent::SetScatter(bool Scatter)
+{
+	EquippedWeapon->SetScatter(Scatter);
 }
 
 void UCombatComponent::FinishReloading()
@@ -750,8 +755,7 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 		HUD = (HUD == nullptr) ? Cast<ABlasterHUD>(Controller->GetHUD()) : HUD;
 		if (HUD)
 		{
-
-			if (EquippedWeapon)
+			if (EquippedWeapon && bSniperHUDAble != true)
 			{
 				HUDPackage.CrosshairCenter = EquippedWeapon->CrosshairCenter;
 				HUDPackage.CrosshairLeft = EquippedWeapon->CrosshairLeft;
@@ -854,7 +858,10 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 	if (Character)
 		Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
 	if (Character->IsLocallyControlled() && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle)
+	{
+		bSniperHUDAble = bIsAiming;
 		Character->ShowSniperScopeWidget(bIsAiming);
+	}
 	if (Character->IsLocallyControlled())
 		bAimButtonPressed = bIsAiming;
 }

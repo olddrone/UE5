@@ -220,7 +220,6 @@ void ABlasterPlayerController::SetHUDBlueTeamScore(int32 BlueScore)
 	}
 }
 
-// 나중에 switch로 따로
 void ABlasterPlayerController::SetHUDTime()
 {
 	float TimeLeft = 0.f;
@@ -389,15 +388,12 @@ void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 
 	bool bHUDValid = BlasterHUD && 
 		BlasterHUD->CharacterOverlay &&
-		BlasterHUD->CharacterOverlay->HealthBar &&
-		BlasterHUD->CharacterOverlay->HealthText;
+		BlasterHUD->CharacterOverlay->HealthBar;
 	
 	if (bHUDValid)
 	{
 		const float HealthPoint = Health / MaxHealth;
 		BlasterHUD->CharacterOverlay->HealthBar->SetPercent(HealthPoint);
-		FString HealthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
-		BlasterHUD->CharacterOverlay->HealthText->SetText(FText::FromString(HealthText));
 	}
 	else
 	{
@@ -413,15 +409,12 @@ void ABlasterPlayerController::SetHUDShield(float Shield, float MaxShield)
 
 	bool bHUDValid = BlasterHUD &&
 		BlasterHUD->CharacterOverlay &&
-		BlasterHUD->CharacterOverlay->ShieldBar &&
-		BlasterHUD->CharacterOverlay->ShieldText;
+		BlasterHUD->CharacterOverlay->ShieldBar;
 
 	if (bHUDValid)
 	{
 		const float ShieldPoint = Shield / MaxShield;
 		BlasterHUD->CharacterOverlay->ShieldBar->SetPercent(ShieldPoint);
-		FString ShieldText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Shield), FMath::CeilToInt(MaxShield));
-		BlasterHUD->CharacterOverlay->ShieldText->SetText(FText::FromString(ShieldText));
 	}
 	else
 	{
